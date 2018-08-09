@@ -1,23 +1,90 @@
 package com.filipe.dagger2project
 
 import android.os.Bundle
+import android.os.Message
+import android.support.annotation.NonNull
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import com.filipe.dagger2project.adapter.RandomUserAdapter
+import com.filipe.dagger2project.interfaces.RandomUsersApi
+import com.filipe.dagger2project.model.RandomUsers
+import com.google.gson.GsonBuilder
 
 import kotlinx.android.synthetic.main.activity_main.*
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import timber.log.Timber
+
 class MainActivity : AppCompatActivity() {
+
+    lateinit var retrofit: Retrofit
+    lateinit var recyclerView: RecyclerView
+    lateinit var mAdapter: RandomUserAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
+        initViews()
 
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
+        val gsonBuilder = GsonBuilder()
+        val gson = gsonBuilder.create()
+
+        Timber.plant(Timber.DebugTree())
+
+        val httpLoggingInterceptor = HttpLoggingInterceptor(object: HttpLoggingInterceptor.Logger {
+            override fun log(@NonNull message: String) {
+                Timber.i(message)
+            }
+        })
+
+        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+
+        val okHttpClient = OkHttpClient()
+                .newBuilder()
+                .addInterceptor(httpLoggingInterceptor)
+                .build()
+
+        retrofit = Retrofit.Builder()
+                .client(okHttpClient)
+                .baseUrl("https://randomuser.me/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build()
+
+        populateUsers()
+    }
+
+    private fun initViews(){
+        recyclerView = findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+    }
+
+    private fun populateUsers() {
+        val randomUsersCall: Call<RandomUsers> = getRandomUserService().getRandomUsers(10)
+        randomUsersCall.enqueue(object: Callback<RandomUsers> {
+            override fun onFailure(call: Call<RandomUsers>?, t: Throwable?) {
+                Timber.i(t!!.message)
+            }
+
+            override fun onResponse(call: Call<RandomUsers>?, response: Response<RandomUsers>) {
+                if(response.isSuccessful()) {
+                    mAdapter = RandomUserAdapter()
+                    mAdapter.setItems(response.body()!!.results)
+                    recyclerView.adapter = mAdapter
+
+                }
+            }
+
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -34,5 +101,9 @@ class MainActivity : AppCompatActivity() {
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun getRandomUserService(): RandomUsersApi {
+        return retrofit.create(RandomUsersApi::class.java)
     }
 }
