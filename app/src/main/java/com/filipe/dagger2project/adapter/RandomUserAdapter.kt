@@ -12,7 +12,13 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.list_item_random_user.view.*
 
 
-class RandomUserAdapter(private val resultList: List<Result>): RecyclerView.Adapter<RandomUserAdapter.RandomUserViewHolder>() {
+class RandomUserAdapter(private val resultList: List<Result>,
+                        private var picasso: Picasso? = null): RecyclerView.Adapter<RandomUserAdapter.RandomUserViewHolder>() {
+
+    fun RandomUserAdapter(picasso: Picasso) {
+        this.picasso = picasso
+    }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RandomUserViewHolder{
         val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_random_user, parent, false)

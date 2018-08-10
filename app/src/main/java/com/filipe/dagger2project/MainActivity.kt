@@ -11,11 +11,17 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.filipe.dagger2project.adapter.RandomUserAdapter
+import com.filipe.dagger2project.interfaces.DaggerRandomUserComponent
+import com.filipe.dagger2project.interfaces.RandomUserComponent
 import com.filipe.dagger2project.interfaces.RandomUsersApi
 import com.filipe.dagger2project.model.RandomUsers
 import com.google.gson.GsonBuilder
+import com.jakewharton.picasso.OkHttp3Downloader
+import com.squareup.picasso.OkHttpDownloader
+import com.squareup.picasso.Picasso
 
 import kotlinx.android.synthetic.main.activity_main.*
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -24,12 +30,15 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var retrofit: Retrofit
     lateinit var recyclerView: RecyclerView
     lateinit var mAdapter: RandomUserAdapter
+
+    lateinit var picasso: Picasso
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +49,11 @@ class MainActivity : AppCompatActivity() {
         val gson = gsonBuilder.create()
 
         Timber.plant(Timber.DebugTree())
+
+        val cacheFile: File = File(cacheDir, "HttpCache")
+        cacheFile.mkdirs()
+
+        val cache: Cache = Cache(cacheFile, 10 * 1000 * 1000)
 
         val httpLoggingInterceptor = HttpLoggingInterceptor(object: HttpLoggingInterceptor.Logger {
             override fun log(@NonNull message: String) {
@@ -54,6 +68,10 @@ class MainActivity : AppCompatActivity() {
                 .addInterceptor(httpLoggingInterceptor)
                 .build()
 
+        val okHttpDownloader: OkHttp3Downloader = OkHttp3Downloader(okHttpClient)
+
+        picasso = Picasso.Builder(this).downloader(okHttpDownloader).build()
+
         retrofit = Retrofit.Builder()
                 .client(okHttpClient)
                 .baseUrl("https://randomuser.me/")
@@ -61,6 +79,14 @@ class MainActivity : AppCompatActivity() {
                 .build()
 
         populateUsers()
+
+        val daggerRandomUserComponent = DaggerRandomUserComponent
+                .builder()
+                .contextModule(ContextModule())
+                .build()
+
+        val picasso = daggerRandomUserComponent.getPicasso()
+        val randomapi = daggerRandomUserComponent.getRandomUserService()
     }
 
     private fun initViews(){
