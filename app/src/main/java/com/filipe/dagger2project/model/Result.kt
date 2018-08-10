@@ -26,13 +26,13 @@ data class Result (
     @Expose
     val login: Login,
 
-    @SerializedName("dob")
-    @Expose
-    val dob: String,
+//    @SerializedName("dob")
+//    @Expose
+//    val dob: String,
 
-    @SerializedName("registered")
-    @Expose
-    val registered: String,
+//    @SerializedName("registered")
+//    @Expose
+//    val registered: String,
 
     @SerializedName("phone")
     @Expose
@@ -60,8 +60,8 @@ data class Result (
                 .append("location", location)
                 .append("email", email)
                 .append("login", login)
-                .append("dob", dob)
-                .append("registered", registered)
+//                .append("dob", dob)
+//                .append("registered", registered)
                 .append("phone", phone)
                 .append("cell", cell)
                 .append("id", id)

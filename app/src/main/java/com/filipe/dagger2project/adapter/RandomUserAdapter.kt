@@ -9,44 +9,36 @@ import android.widget.TextView
 import com.filipe.dagger2project.R
 import com.filipe.dagger2project.model.Result
 import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.list_item_random_user.view.*
 
 
-class RandomUserAdapter: RecyclerView.Adapter<RandomUserAdapter.RandomUserViewHolder>() {
-
-    var resultList: List<Result> = ArrayList()
-
-    fun RandomUserAdapter() {
-    }
+class RandomUserAdapter(private val resultList: List<Result>): RecyclerView.Adapter<RandomUserAdapter.RandomUserViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RandomUserViewHolder{
         val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_random_user, parent, false)
         return RandomUserViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: RandomUserViewHolder, position: Int) {
-        val result = resultList.get(position)
-        holder.textView.setText(String.format("%s %s", result.name.first, result.name.last))
-        Picasso.with(holder.imageView.context)
-                .load(result.picture.large)
-                .into(holder.imageView)
-    }
-
     override fun getItemCount(): Int {
         return resultList.size
     }
 
-    fun setItems(results: List<Result>) {
-        resultList = results
-        notifyDataSetChanged()
+    override fun onBindViewHolder(holder: RandomUserViewHolder, position: Int) {
+        val result = resultList[position]
+        holder.RandomUserViewHolder(result)
+        holder.name?.setText(String.format("%s %s", result.name.first, result.name.last))
+        Picasso.with(holder.image?.context)
+                .load(result.picture.large)
+                .into(holder.image)
     }
 
-    inner class RandomUserViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
-        lateinit var textView: TextView
-        lateinit var imageView: ImageView
+    class RandomUserViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
+        var name: TextView? = null
+        var image: ImageView? = null
 
-        fun RandomUserViewHolder(itemView: View) {
-            textView = itemView.findViewById(R.id.name)
-            imageView = itemView.findViewById<View>(R.id.image) as ImageView
+        fun RandomUserViewHolder(result: Result) {
+            name = itemView.name
+            image = itemView.image
         }
     }
 }

@@ -77,8 +77,8 @@ class MainActivity : AppCompatActivity() {
 
             override fun onResponse(call: Call<RandomUsers>?, response: Response<RandomUsers>) {
                 if(response.isSuccessful()) {
-                    mAdapter = RandomUserAdapter()
-                    mAdapter.setItems(response.body()!!.results)
+                    mAdapter = RandomUserAdapter(response.body()!!.results)
+//                    mAdapter.setItems(response.body()!!.results)
                     recyclerView.adapter = mAdapter
 
                 }
