@@ -1,6 +1,8 @@
 package com.filipe.dagger2project
 
 import android.content.Context
+import com.filipe.dagger2project.interfaces.ApplicationContext
+import com.filipe.dagger2project.interfaces.RandomUserApplicationScope
 import dagger.Module
 import dagger.Provides
 import okhttp3.Cache
@@ -8,6 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import timber.log.Timber
 import java.io.File
+import javax.inject.Named
 
 @Module(includes = [ContextModule::class])
 class OkHttpClientModule {
@@ -27,7 +30,8 @@ class OkHttpClientModule {
     }
 
     @Provides
-    fun file(context: Context): File {
+    @RandomUserApplicationScope
+    fun file(@ApplicationContext context: Context): File {
         val file = File(context.cacheDir, "HttpCache")
         file.mkdirs()
         return file

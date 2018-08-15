@@ -1,5 +1,6 @@
 package com.filipe.dagger2project
 
+import com.filipe.dagger2project.interfaces.RandomUserApplicationScope
 import com.filipe.dagger2project.interfaces.RandomUsersApi
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -12,6 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 @Module(includes = [(OkHttpClientModule::class)])
 class RandomUserModule {
 
+    @RandomUserApplicationScope
     @Provides
     fun randomUsersApi(retrofit: Retrofit): RandomUsersApi {
         return retrofit.create(RandomUsersApi::class.java)

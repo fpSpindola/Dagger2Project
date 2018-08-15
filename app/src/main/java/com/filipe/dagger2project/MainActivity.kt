@@ -78,8 +78,6 @@ class MainActivity : AppCompatActivity() {
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build()
 
-        populateUsers()
-
         val daggerRandomUserComponent = DaggerRandomUserComponent
                 .builder()
                 .contextModule(ContextModule())
@@ -87,6 +85,8 @@ class MainActivity : AppCompatActivity() {
 
         val picasso = daggerRandomUserComponent.getPicasso()
         val randomapi = daggerRandomUserComponent.getRandomUserService()
+
+        populateUsers()
     }
 
     private fun initViews(){
