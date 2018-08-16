@@ -35,15 +35,19 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
 import java.io.File
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var retrofit: Retrofit
     lateinit var recyclerView: RecyclerView
+
+    @Inject
     lateinit var mAdapter: RandomUserAdapter
 
     lateinit var picasso: Picasso
 
+    @Inject
     lateinit var randomUsersApi: RandomUsersApi
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,33 +55,35 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         initViews()
 
-        val daggerRandomUserComponent = DaggerRandomUserComponent
-                .builder()
-                .contextModule(ContextModule(this))
-                .build()
-
-        val picasso = daggerRandomUserComponent.getPicasso()
-        val randomapi = daggerRandomUserComponent.getRandomUserService()
+//        val daggerRandomUserComponent = DaggerRandomUserComponent
+//                .builder()
+//                .contextModule(ContextModule(this))
+//                .build()
+//
+//        val picasso = daggerRandomUserComponent.getPicasso()
+//        val randomapi = daggerRandomUserComponent.getRandomUserService()
 
         val mainActivityComponent: MainActivityComponent = DaggerMainActivityComponent.builder()
                 .mainActivityModule(MainActivityModule(this))
                 .randomUserComponent(RandomUserApplication().get(this).getAltRandomUserApplicationComponent())
                 .build()
 
-        randomUsersApi = mainActivityComponent.getRandomUserService()
-        mAdapter = mainActivityComponent.getRandomUserAdapter()
+//        randomUsersApi = mainActivityComponent.getRandomUserService()
+//        mAdapter = mainActivityComponent.getRandomUserAdapter()
+
+        mainActivityComponent.injectMainActivity(this)
 
         populateUsers()
     }
 
-    private fun afterActivityLevelComponent() {
-        val mainActivityComponent: MainActivityComponent = DaggerMainActivityComponent.builder()
-                .mainActivityModule(MainActivityModule(this))
-                .randomUserComponent(RandomUserApplication().get(this).getAltRandomUserApplicationComponent())
-                .build()
-        randomUsersApi = mainActivityComponent.getRandomUserService()
-        mAdapter = mainActivityComponent.getRandomUserAdapter()
-    }
+//    private fun afterActivityLevelComponent() {
+//        val mainActivityComponent: MainActivityComponent = DaggerMainActivityComponent.builder()
+//                .mainActivityModule(MainActivityModule(this))
+//                .randomUserComponent(RandomUserApplication().get(this).getAltRandomUserApplicationComponent())
+//                .build()
+//        randomUsersApi = mainActivityComponent.getRandomUserService()
+//        mAdapter = mainActivityComponent.getRandomUserAdapter()
+//    }
 
     private fun afterDagger() {
         val daggerRandomUserComponent = DaggerRandomUserComponent.builder()
