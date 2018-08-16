@@ -8,13 +8,7 @@ import dagger.Provides
 import javax.inject.Named
 
 @Module
-class ContextModule {
-
-    lateinit var context: Context
-
-    fun ContextModule(context: Context){
-        this.context = context
-    }
+class ContextModule(private val context: Context) {
 
     @ApplicationContext
     @RandomUserApplicationScope

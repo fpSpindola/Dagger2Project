@@ -10,7 +10,11 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import com.filipe.dagger2project.MainActivityFeature.DaggerMainActivityComponent
+import com.filipe.dagger2project.MainActivityFeature.MainActivityComponent
+import com.filipe.dagger2project.MainActivityFeature.MainActivityModule
 import com.filipe.dagger2project.adapter.RandomUserAdapter
+import com.filipe.dagger2project.application.RandomUserApplication
 import com.filipe.dagger2project.interfaces.DaggerRandomUserComponent
 import com.filipe.dagger2project.interfaces.RandomUserComponent
 import com.filipe.dagger2project.interfaces.RandomUsersApi
@@ -40,17 +44,56 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var picasso: Picasso
 
+    lateinit var randomUsersApi: RandomUsersApi
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initViews()
 
-        val gsonBuilder = GsonBuilder()
+        val daggerRandomUserComponent = DaggerRandomUserComponent
+                .builder()
+                .contextModule(ContextModule(this))
+                .build()
+
+        val picasso = daggerRandomUserComponent.getPicasso()
+        val randomapi = daggerRandomUserComponent.getRandomUserService()
+
+        val mainActivityComponent: MainActivityComponent = DaggerMainActivityComponent.builder()
+                .mainActivityModule(MainActivityModule(this))
+                .randomUserComponent(RandomUserApplication().get(this).getAltRandomUserApplicationComponent())
+                .build()
+
+        randomUsersApi = mainActivityComponent.getRandomUserService()
+        mAdapter = mainActivityComponent.getRandomUserAdapter()
+
+        populateUsers()
+    }
+
+    private fun afterActivityLevelComponent() {
+        val mainActivityComponent: MainActivityComponent = DaggerMainActivityComponent.builder()
+                .mainActivityModule(MainActivityModule(this))
+                .randomUserComponent(RandomUserApplication().get(this).getAltRandomUserApplicationComponent())
+                .build()
+        randomUsersApi = mainActivityComponent.getRandomUserService()
+        mAdapter = mainActivityComponent.getRandomUserAdapter()
+    }
+
+    private fun afterDagger() {
+        val daggerRandomUserComponent = DaggerRandomUserComponent.builder()
+                .contextModule(ContextModule(this))
+                .build()
+        picasso = daggerRandomUserComponent.getPicasso()
+        randomUsersApi = daggerRandomUserComponent.getRandomUserService()
+    }
+
+    private fun beforeDagger2() {
+        val gsonBuilder: GsonBuilder = GsonBuilder()
         val gson = gsonBuilder.create()
 
         Timber.plant(Timber.DebugTree())
 
-        val cacheFile: File = File(cacheDir, "HttpCache")
+        val cacheFile: File = File(this.cacheDir, "HttpCache")
         cacheFile.mkdirs()
 
         val cache: Cache = Cache(cacheFile, 10 * 1000 * 1000)
@@ -77,16 +120,6 @@ class MainActivity : AppCompatActivity() {
                 .baseUrl("https://randomuser.me/")
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build()
-
-        val daggerRandomUserComponent = DaggerRandomUserComponent
-                .builder()
-                .contextModule(ContextModule())
-                .build()
-
-        val picasso = daggerRandomUserComponent.getPicasso()
-        val randomapi = daggerRandomUserComponent.getRandomUserService()
-
-        populateUsers()
     }
 
     private fun initViews(){
@@ -103,7 +136,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onResponse(call: Call<RandomUsers>?, response: Response<RandomUsers>) {
                 if(response.isSuccessful()) {
-                    mAdapter = RandomUserAdapter(response.body()!!.results)
+                    mAdapter = RandomUserAdapter(response.body()!!.results, null)
 //                    mAdapter.setItems(response.body()!!.results)
                     recyclerView.adapter = mAdapter
 
@@ -130,6 +163,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getRandomUserService(): RandomUsersApi {
-        return retrofit.create(RandomUsersApi::class.java)
+        return randomUsersApi
     }
 }
